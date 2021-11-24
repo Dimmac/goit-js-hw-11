@@ -15,24 +15,20 @@ const refs = {
   LoadMoreBtn: document.querySelector('.load-more'),
 };
 
-const formEl = document.querySelector('#search-form');
-const galleryEl = document.querySelector('.log-list');
-const LoadMoreBtn = document.querySelector('.load-more');
+refs.logList.addEventListener('click', onClickFoto);
+refs.searchForm.addEventListener('submit', userRequest);
+refs.LoadMoreBtn.addEventListener('click', onLoadMoreBtn);
 
-galleryEl.addEventListener('click', onClickJustImage);
-formEl.addEventListener('submit', searchImg);
-LoadMoreBtn.addEventListener('click', onLoadMoreBtn);
+function userRequest(event) {
+  event.preventDefault();
 
-function searchImg(e) {
-  e.preventDefault();
-
-  JsApiService.query = e.currentTarget.elements.searchQuery.value.trim();
+  JsApiService.query = event.target.elements.searchQuery.value.trim();
   JsApiService.resetPage();
-  galleryEl.innerHTML = '';
+  refs.logList.innerHTML = '';
 
   if (JsApiService.query === '') {
-    LoadMoreBtn.classList.add('is-hidden');
-    galleryEl.innerHTML = '';
+    refs.LoadMoreBtn.classList.add('is-hidden');
+    refs.logList.innerHTML = '';
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.',
     );
@@ -40,26 +36,26 @@ function searchImg(e) {
   }
 
   JsApiService.fetchImg(JsApiService.query)
-    .then(showImg)
+    .then(showImage)
     .catch(error => {
-      LoadMoreBtn.classList.add('is-hidden');
-      galleryEl.innerHTML = '';
+      refs.LoadMoreBtn.classList.add('is-hidden');
+      refs.logList.innerHTML = '';
       Notiflix.Notify.failure(
         `Sorry, there are no images matching your search query. Please try again`,
       );
     });
 }
 
-function showImg(data) {
+function showImage(data) {
   const markup = cardList(data);
-  galleryEl.insertAdjacentHTML('beforeend', markup);
+  refs.logList.insertAdjacentHTML('beforeend', markup);
 
-  LoadMoreBtn.classList.remove('is-hidden');
+  refs.LoadMoreBtn.classList.remove('is-hidden');
   const lightbox = new SimpleLightbox('.photo-card a');
-  scrollImg();
+  scrollImage();
 
   if (data.hits.length < 40) {
-    LoadMoreBtn.classList.add('is-hidden');
+    refs.LoadMoreBtn.classList.add('is-hidden');
     Notiflix.Notify.info('We are sorry, but you have reached the end of search results.');
   }
 
@@ -67,34 +63,33 @@ function showImg(data) {
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.',
     );
-
     return;
   }
 }
 
-function scrollImg() {
-  const { height: cardHeight } = galleryEl.firstElementChild.getBoundingClientRect();
+function onLoadMoreBtn(event) {
+  if (event) {
+    JsApiService.pageAdd();
+    JsApiService.fetchImg().then(showImage);
+    const lightbox = new SimpleLightbox('.photo-card a');
+    lightbox.refresh();
+  }
+}
+
+function onClickFoto(event) {
+  event.preventDefault();
+  const isImage = event.target.classList.contains('photo-card_img');
+  if (!isImage) {
+    return;
+  }
+}
+
+function scrollImage() {
+  const { height: cardHeight } = refs.logList.firstElementChild.getBoundingClientRect();
   if (count !== 0)
     window.scrollBy({
       top: cardHeight * 1.5,
       behavior: 'smooth',
     });
   count += 1;
-}
-
-function onClickJustImage(e) {
-  e.preventDefault();
-  const isImage = e.target.classList.contains('photo-card_img');
-  if (!isImage) {
-    return;
-  }
-}
-
-function onLoadMoreBtn(e) {
-  if (e) {
-    JsApiService.pageAdd();
-    JsApiService.fetchImg().then(showImg);
-    const lightbox = new SimpleLightbox('.photo-card a');
-    lightbox.refresh();
-  }
 }

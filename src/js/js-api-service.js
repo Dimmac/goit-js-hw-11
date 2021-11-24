@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Notiflix from 'notiflix';
 import 'notiflix/dist/notiflix-3.2.2.min.css';
+
 const AUTH_TOKEN = '24470398-c309df70e691fcddcf65d58a2';
 
 export default class ApiService {
